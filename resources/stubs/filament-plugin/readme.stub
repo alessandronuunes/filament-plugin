@@ -1,0 +1,97 @@
+# {{CLASS_NAME}}
+
+{{DESCRIPTION}}
+
+> **Screenshot / README image:** Use an image that highlights your plugin's functionality, rather than a full-panel screenshot. Zoom and crop to the sidebar and top bar so the plugin stands out more.
+
+## Requirements
+
+- PHP 8.2 or higher
+- Laravel 11.x or 12.x
+- Filament 4.x or 5.x
+
+## Installation
+
+Install the package via Composer:
+
+```bash
+composer require {{COMPOSER_NAME}}
+```
+
+{{#INSTALL_COMMAND}}Publish the configuration, migrations, and translations:
+
+```bash
+php artisan {{PLUGIN_ID}}:install
+```
+
+Or publish them individually:
+
+{{#CONFIG}}```bash
+php artisan vendor:publish --tag="{{PLUGIN_ID}}-config"
+```
+{{/CONFIG}}
+{{#MIGRATIONS}}```bash
+php artisan vendor:publish --tag="{{PLUGIN_ID}}-migrations"
+php artisan migrate
+```
+{{/MIGRATIONS}}
+{{#TRANSLATIONS}}```bash
+php artisan vendor:publish --tag="{{PLUGIN_ID}}-translations"
+```
+{{/TRANSLATIONS}}{{/INSTALL_COMMAND}}
+## Configuration
+
+### Register the Plugin
+
+Add the plugin to your Filament panel configuration:
+
+```php
+use {{NAMESPACE}}\{{CLASS_NAME}}Plugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            {{CLASS_NAME}}Plugin::make(),
+        ]);
+}
+```
+
+{{#CONFIG}}### Customize Configuration
+
+Edit `config/{{CONFIG_KEY}}.php` to customize the plugin behavior.
+{{/CONFIG}}
+
+## Theme / Styling (required)
+
+For the plugin styles to work correctly, add the `@source` directive to your theme file (e.g. `resources/css/filament/admin/theme.css`):
+
+**If installed via Composer (vendor):**
+
+```css
+@source '../../../../vendor/{{COMPOSER_NAME}}/resources/views/**/*';
+```
+
+**If the package is local (e.g. `packages/{{PACKAGE_SLUG}}`):**
+
+```css
+@source '../../../../packages/{{PACKAGE_SLUG}}/resources/views/**/*';
+```
+
+Then run:
+
+```bash
+npm run build
+```
+
+## Usage
+
+<!-- Describe how to use the plugin here -->
+
+## License
+
+This package is open-sourced software licensed under the [MIT license](LICENSE.md).
+
+## Author
+
+**{{AUTHOR_NAME}}**

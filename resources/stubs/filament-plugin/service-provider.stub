@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+{{#INSTALL_COMMAND}}use {{NAMESPACE}}\Console\Commands\InstallCommand;
+{{/INSTALL_COMMAND}}use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
+
+class {{CLASS_NAME}}ServiceProvider extends PackageServiceProvider
+{
+    public static string $name = '{{PLUGIN_ID}}';
+
+    public function configurePackage(Package $package): void
+    {
+        $package
+            ->name(static::$name)
+{{#CONFIG}}            ->hasConfigFile()
+{{/CONFIG}}{{#VIEWS}}            ->hasViews()
+{{/VIEWS}}{{#TRANSLATIONS}}            ->hasTranslations()
+{{/TRANSLATIONS}}{{#INSTALL_COMMAND}}            ->hasCommands([
+                InstallCommand::class,
+            ])
+{{/INSTALL_COMMAND}}{{#MIGRATIONS}}            ->hasMigrations([
+                // 'create_example_table',
+            ])
+{{/MIGRATIONS}}        ;
+    }
+
+    public function packageBooted(): void
+    {
+        // Register Livewire components, FilamentAsset, Events, etc.
+    }
+}

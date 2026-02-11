@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}}\Support;
+
+class ConfigHelper
+{
+    /**
+     * Get a configuration value from the plugin config.
+     */
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        return config('{{CONFIG_KEY}}.'.$key, $default);
+    }
+}

@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}}\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class InstallCommand extends Command
+{
+    protected $signature = '{{PLUGIN_ID}}:install';
+
+    protected $description = 'Install the {{PLUGIN_ID}} package';
+
+    public function handle(): int
+    {
+        $tags = [
+{{#CONFIG}}            '{{PLUGIN_ID}}-config',
+{{/CONFIG}}{{#MIGRATIONS}}            '{{PLUGIN_ID}}-migrations',
+{{/MIGRATIONS}}{{#TRANSLATIONS}}            '{{PLUGIN_ID}}-translations',
+{{/TRANSLATIONS}}        ];
+
+        foreach ($tags as $tag) {
+            $this->call('vendor:publish', [
+                '--tag' => $tag,
+                '--force' => true,
+            ]);
+        }
+
+        $this->components->info('{{CLASS_NAME}} was installed successfully.');
+
+        return self::SUCCESS;
+    }
+}

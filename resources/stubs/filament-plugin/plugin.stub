@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use Filament\Contracts\Plugin;
+use Filament\Panel;
+
+class {{CLASS_NAME}}Plugin implements Plugin
+{
+    public function getId(): string
+    {
+        return '{{PLUGIN_ID}}';
+    }
+
+    public function register(Panel $panel): void
+    {
+        // Register pages, resources, widgets, routes, etc.
+        // $panel->pages([...]);
+    }
+
+    public function boot(Panel $panel): void
+    {
+        //
+    }
+
+    public static function make(): static
+    {
+        return new static();
+    }
+
+    public static function get(): static
+    {
+        /** @var static $plugin */
+        $plugin = filament(resolve(static::class)->getId());
+
+        return $plugin;
+    }
+}

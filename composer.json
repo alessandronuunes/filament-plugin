@@ -1,0 +1,36 @@
+{
+    "name": "alessandronuunes/filament-plugin",
+    "description": "Scaffold Filament v4 plugins with one Artisan command.",
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "laravel",
+        "scaffold",
+        "plugin"
+    ],
+    "homepage": "https://github.com/alessandronuunes/filament-plugin",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2|^8.3|^8.4",
+        "illuminate/console": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AlessandroNuunes\\FilamentPlugin\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AlessandroNuunes\\FilamentPlugin\\FilamentPluginServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
