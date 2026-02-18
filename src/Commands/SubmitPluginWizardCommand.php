@@ -8,6 +8,7 @@ use AlessandroNuunes\FilamentPlugin\Concerns\DiscoversFilamentPlugins;
 use AlessandroNuunes\FilamentPlugin\Concerns\ResolvesAuthorDefaults;
 use AlessandroNuunes\FilamentPlugin\Support\PluginSubmitDefaultsResolver;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 
 use function Laravel\Prompts\select;
 
@@ -61,6 +62,7 @@ class SubmitPluginWizardCommand extends Command
         $this->stepBranch();
         $this->stepAuthor();
         $this->stepPluginData();
+        $this->stepCreateFiles();
         $this->stepCommitAndPush();
         $this->stepOpenPr();
 
@@ -76,6 +78,16 @@ class SubmitPluginWizardCommand extends Command
 
         if (filled($repo)) {
             return realpath($repo) ?: (string) $repo;
+        }
+
+        $configPath = config('filament-plugin.filamentphp_fork_path');
+        if (filled($configPath)) {
+            $resolved = realpath($configPath);
+            if ($resolved !== false) {
+                return $resolved;
+            }
+
+            return rtrim((string) $configPath, DIRECTORY_SEPARATOR);
         }
 
         return (string) getcwd();
@@ -174,6 +186,7 @@ class SubmitPluginWizardCommand extends Command
         $lines[] = $bio !== '' ? $bio."\n" : "Your bio here. Check grammar (e.g. Grammarly).\n";
 
         $content = implode('', $lines);
+        $this->state['author_file_content'] = $content;
         $filePath = $this->path('content/authors/'.$slug.'.md');
 
         $this->line('Create this file in your clone: '.$filePath);
@@ -266,6 +279,7 @@ class SubmitPluginWizardCommand extends Command
         $yaml .= 'versions: '.$versionsInline."\n";
         $yaml .= 'publish_date: "'.$publishDate."\"\n";
         $yaml .= "---\n";
+        $this->state['plugin_file_content'] = $yaml;
 
         $filePath = $this->path('content/plugins/'.$pluginSlug.'.md');
 
@@ -274,6 +288,51 @@ class SubmitPluginWizardCommand extends Command
         $this->line('This file is what the site uses to list your plugin.');
         $this->line('Add the plugin image at content/plugins/images/'.$pluginSlug.'.jpg (16:9, min 2560×1440 px, JPEG, light theme).');
         $this->ask('When the image is in place (or to skip for now), press ENTER to continue');
+    }
+
+    private function stepCreateFiles(): void
+    {
+        if (! $this->confirm('Create the author and plugin files in your fork now?', false)) {
+            return;
+        }
+
+        $authorSlug = $this->state['author_slug'];
+        $pluginSlug = $this->state['plugin_slug'];
+        $pluginFilename = $this->state['plugin_filename'];
+        $isNewAuthor = $this->state['is_new_author'] ?? true;
+
+        $created = [];
+
+        if ($isNewAuthor && isset($this->state['author_file_content'])) {
+            $authorPath = $this->path('content/authors/'.$authorSlug.'.md');
+            if ($this->writeFileIfConfirmed($authorPath, $this->state['author_file_content'])) {
+                $created[] = 'content/authors/'.$authorSlug.'.md';
+            }
+        }
+
+        if (isset($this->state['plugin_file_content'])) {
+            $pluginPath = $this->path('content/plugins/'.$pluginFilename);
+            if ($this->writeFileIfConfirmed($pluginPath, $this->state['plugin_file_content'])) {
+                $created[] = 'content/plugins/'.$pluginFilename;
+            }
+        }
+
+        if (! empty($created)) {
+            $this->info('Created: '.implode(', ', $created));
+            $this->line('Add manually: avatar at content/authors/avatars/'.$authorSlug.'.jpg and plugin image at content/plugins/images/'.$pluginSlug.'.jpg');
+        }
+    }
+
+    private function writeFileIfConfirmed(string $filePath, string $content): bool
+    {
+        if (File::exists($filePath) && ! $this->confirm('File already exists: '.$filePath.' — Overwrite?', false)) {
+            return false;
+        }
+
+        File::ensureDirectoryExists(dirname($filePath));
+        File::put($filePath, $content);
+
+        return true;
     }
 
     private function stepCommitAndPush(): void

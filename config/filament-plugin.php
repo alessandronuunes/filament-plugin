@@ -3,6 +3,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | FilamentPHP.com Fork Path
+    |--------------------------------------------------------------------------
+    | Path to your filamentphp.com fork clone. Used as default for
+    | filament-plugin:submit --repo. Enables automatic file creation.
+    | Example: /Users/you/Workspace/fork/filamentphp.com
+    */
+    'filamentphp_fork_path' => env('FILAMENTPHP_FORK_PATH'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Packages Path
     |--------------------------------------------------------------------------
     | Base path where local plugins live (e.g. packages/). Used by

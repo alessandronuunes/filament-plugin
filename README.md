@@ -9,6 +9,7 @@ Scaffold Filament v3/v4/v5 plugins with Artisan commands. Generates the full str
 | `make:filament-plugin` | Create a new Filament plugin from scratch |
 | `filament-plugin:register` | Register an existing plugin in the project `composer.json` |
 | `filament-plugin:page` | Create a Filament page inside an existing plugin |
+| `filament-plugin:submit` | Interactive wizard to submit a plugin to filamentphp.com |
 
 ## Requirements
 
@@ -57,11 +58,18 @@ Edit `config/filament-plugin.php`:
 | Option | Description | Default |
 |--------|-------------|---------|
 | `packages_path` | Base directory for local plugins | `packages` |
+| `filamentphp_fork_path` | Path to your filamentphp.com fork (env: `FILAMENTPHP_FORK_PATH`) | — |
 | `default_vendor` | Vendor namespace for new plugins | `AlessandroNuunes` |
 | `default_author_name` | Author name for `composer.json` | `AlessandroNuunes` |
 | `default_author_email` | Author email for `composer.json` | — |
 
 The `packages_path` is used by `filament-plugin:register` and `filament-plugin:page` to locate plugins (e.g. `FilamentTest` → `packages/filament-test`).
+
+The `filamentphp_fork_path` is used by `filament-plugin:submit` as the default repo path and enables automatic creation of author and plugin files in your fork. Set in `.env`:
+
+```env
+FILAMENTPHP_FORK_PATH=/Users/you/Workspace/fork/filamentphp.com
+```
 
 ---
 
@@ -164,6 +172,55 @@ With `--register`, the command adds the page to `->pages([...])` in the plugin `
 
 ---
 
+## 4. Submit Plugin to filamentphp.com
+
+Interactive wizard to prepare and submit a plugin to [filamentphp.com](https://filamentphp.com/plugins):
+
+```bash
+php artisan filament-plugin:submit
+```
+
+The wizard guides you through:
+
+1. Fork and clone the filamentphp.com repository
+2. Selecting a plugin from `packages/` (or entering data manually)
+3. Creating a branch (e.g. `add-filament-tabbed-dashboard`)
+4. Author profile (new or existing)
+5. Plugin data (name, slug, categories, description, etc.)
+6. **Create files** — optionally writes `content/authors/{slug}.md` and `content/plugins/{slug}.md` directly into your fork
+7. Commit and push instructions
+8. Pull Request checklist
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--repo=` | Path to your filamentphp.com clone (default: `FILAMENTPHP_FORK_PATH` or current directory) |
+
+### Automatic File Creation
+
+If `FILAMENTPHP_FORK_PATH` is set in `.env`, the wizard uses it as the default repo path. At the end, it asks:
+
+> Create the author and plugin files in your fork now? [y/N]
+
+If you confirm, it writes the author and plugin markdown files directly. Add avatar and plugin image manually (JPEG, sizes as per filamentphp.com guidelines).
+
+### Author Defaults (Submit Wizard)
+
+Configure in `config/filament-plugin.php` to pre-fill the submit wizard:
+
+| Option | Description |
+|--------|-------------|
+| `author_full_name` | Full name for author profile |
+| `author_slug` | Author slug (e.g. `alessandro-nuunes`) |
+| `author_github_url` | GitHub profile URL |
+| `author_twitter` | Twitter/X URL (optional) |
+| `author_mastodon` | Mastodon URL (optional) |
+| `author_sponsor_url` | Sponsor URL (optional) |
+| `author_bio` | Short bio (optional) |
+
+---
+
 ## Recommended Workflow
 
 1. **Create the plugin:**
@@ -187,6 +244,11 @@ With `--register`, the command adds the page to `->pages([...])` in the plugin `
    ->plugins([
        \YourVendor\FilamentTest\FilamentTestPlugin::make(),
    ])
+   ```
+
+5. **Submit to filamentphp.com** (optional):
+   ```bash
+   php artisan filament-plugin:submit
    ```
 
 ---
