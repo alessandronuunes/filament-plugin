@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace AlessandroNuunes\FilamentPlugin\Commands;
 
+use AlessandroNuunes\FilamentPlugin\Concerns\DiscoversFilamentPlugins;
+use AlessandroNuunes\FilamentPlugin\Concerns\ResolvesAuthorDefaults;
+use AlessandroNuunes\FilamentPlugin\Support\PluginSubmitDefaultsResolver;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 use function Laravel\Prompts\select;
 
 class SubmitPluginWizardCommand extends Command
 {
+    use DiscoversFilamentPlugins;
+    use ResolvesAuthorDefaults;
+
     protected $signature = 'filament-plugin:submit
         {--repo= : Path to your filamentphp.com clone (default: current directory)}';
 
@@ -70,8 +74,8 @@ class SubmitPluginWizardCommand extends Command
     {
         $repo = $this->option('repo');
 
-        if (is_string($repo) && $repo !== '') {
-            return realpath($repo) ?: $repo;
+        if (filled($repo)) {
+            return realpath($repo) ?: (string) $repo;
         }
 
         return (string) getcwd();
@@ -110,7 +114,7 @@ class SubmitPluginWizardCommand extends Command
             'Branch name (a new branch will be created with: git checkout -b '.$defaultBranch.')',
             $defaultBranch
         );
-        $branch = $branch !== '' ? $branch : $defaultBranch;
+        $branch = filled($branch) ? $branch : $defaultBranch;
         $this->state['branch'] = $branch;
 
         $this->line('In your filamentphp.com clone, run:');
@@ -123,41 +127,11 @@ class SubmitPluginWizardCommand extends Command
     {
         $slug = $this->state['selected_plugin_slug'] ?? null;
 
-        if (is_string($slug) && $slug !== '') {
+        if (filled($slug)) {
             return 'add-'.$slug;
         }
 
         return 'add-my-plugin';
-    }
-
-    /**
-     * @return array{full_name: string, slug: string, github_url: string}
-     */
-    private function getAuthorDefaults(): array
-    {
-        $vendor = config('filament-plugin.default_vendor', '');
-        $authorName = config('filament-plugin.default_author_name', $vendor);
-
-        $fullName = config('filament-plugin.author_full_name');
-        if (! is_string($fullName) || $fullName === '') {
-            $fullName = (string) preg_replace('/([a-z])([A-Z])/', '$1 $2', $authorName);
-        }
-
-        $slug = config('filament-plugin.author_slug');
-        if (! is_string($slug) || $slug === '') {
-            $slug = Str::slug((string) preg_replace('/([a-z])([A-Z])/', '$1 $2', $authorName));
-        }
-
-        $githubUrl = config('filament-plugin.author_github_url');
-        if (! is_string($githubUrl) || $githubUrl === '') {
-            $githubUrl = 'https://github.com/'.Str::slug($vendor ?: $authorName, '');
-        }
-
-        return [
-            'full_name' => $fullName,
-            'slug' => $slug,
-            'github_url' => $githubUrl,
-        ];
     }
 
     private function stepAuthor(): void
@@ -210,55 +184,6 @@ class SubmitPluginWizardCommand extends Command
         $this->ask('When ready, press ENTER to continue');
     }
 
-    /**
-     * Discover Filament plugins in the project packages path (composer.json with filament/filament).
-     *
-     * @return array<int, array{path: string, composer: array<string, mixed>, name: string, slug: string}>
-     */
-    private function discoverPlugins(): array
-    {
-        $packagesPath = base_path(config('filament-plugin.packages_path', 'packages'));
-
-        if (! is_dir($packagesPath)) {
-            return [];
-        }
-
-        $plugins = [];
-
-        foreach (File::directories($packagesPath) as $dir) {
-            $composerPath = $dir.DIRECTORY_SEPARATOR.'composer.json';
-
-            if (! File::exists($composerPath)) {
-                continue;
-            }
-
-            $json = File::get($composerPath);
-            $data = json_decode($json, true);
-
-            if (! is_array($data)) {
-                continue;
-            }
-
-            $require = $data['require'] ?? [];
-            $requireDev = $data['require-dev'] ?? [];
-            $hasFilament = isset($require['filament/filament']) || isset($requireDev['filament/filament']);
-
-            if (! $hasFilament) {
-                continue;
-            }
-
-            $name = $data['name'] ?? basename($dir);
-            $plugins[] = [
-                'path' => $dir,
-                'composer' => $data,
-                'name' => $name,
-                'slug' => basename($dir),
-            ];
-        }
-
-        return $plugins;
-    }
-
     private function stepSelectPlugin(): void
     {
         $plugins = $this->discoverPlugins();
@@ -294,56 +219,15 @@ class SubmitPluginWizardCommand extends Command
         }
     }
 
-    /**
-     * @return array{name: string, slug_part: string, description: string, docs_url: string, github_repository: string}
-     */
-    private function defaultsFromSelectedPlugin(): array
-    {
-        $composer = $this->state['selected_plugin_composer'] ?? null;
-
-        $defaults = [
-            'name' => '',
-            'slug_part' => '',
-            'description' => '',
-            'docs_url' => '',
-            'github_repository' => '',
-        ];
-
-        if (! is_array($composer)) {
-            return $defaults;
-        }
-
-        $defaults['description'] = (string) ($composer['description'] ?? '');
-
-        $packageName = (string) ($composer['name'] ?? '');
-        if (str_contains($packageName, '/')) {
-            $slugPartRaw = explode('/', $packageName)[1] ?? '';
-            $defaults['slug_part'] = preg_replace('/^filament-/i', '', $slugPartRaw);
-        }
-
-        $slugPart = $defaults['slug_part'];
-        $defaults['name'] = ucwords(str_replace('-', ' ', $slugPart));
-
-        $source = $composer['support']['source'] ?? $composer['homepage'] ?? '';
-        if ($source === '' && isset($composer['homepage'])) {
-            $source = (string) $composer['homepage'];
-        }
-        if (preg_match('#github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$#', $source, $m)) {
-            $user = $m[1];
-            $repo = trim($m[2], '/');
-            $defaults['github_repository'] = $user.'/'.$repo;
-            $defaults['docs_url'] = 'https://raw.githubusercontent.com/'.$user.'/'.$repo.'/main/README.md';
-        }
-
-        return $defaults;
-    }
-
     private function stepPluginData(): void
     {
         $authorSlug = $this->state['author_slug'] ?? $this->ask('What is your author slug?', '');
         $this->state['author_slug'] = $authorSlug;
 
-        $defaults = $this->defaultsFromSelectedPlugin();
+        $composer = $this->state['selected_plugin_composer'] ?? [];
+        $defaults = is_array($composer)
+            ? PluginSubmitDefaultsResolver::fromComposer($composer)
+            : ['name' => '', 'slug_part' => '', 'description' => '', 'docs_url' => '', 'github_repository' => ''];
 
         $pluginName = $this->ask('Plugin name (without "Filament", e.g. Member Management)', $defaults['name']);
         $slugPart = $this->ask('Plugin slug part (e.g. member → full slug: '.$authorSlug.'-member)', $defaults['slug_part']);

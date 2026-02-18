@@ -45,4 +45,4 @@ return [
     'author_mastodon' => null,
     'author_sponsor_url' => 'https://github.com/sponsors/alessandronuunes',
 
-    ];
+];
