@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
+
+class {{CLASS_NAME}} extends Page
+{
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+
+    protected static string $view = '{{VIEW_NAME}}';
+}

@@ -1,1 +1,63 @@
-{"name":"{{COMPOSER_NAME}}","description":"{{DESCRIPTION}}","keywords":["filament","filament-plugin","laravel"],"homepage":"https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}","type":"library","license":"MIT","support":{"issues":"https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}/issues","source":"https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}"},"authors":[{"name":"{{AUTHOR_NAME}}","email":"{{AUTHOR_EMAIL}}"}],"require":{"php":"^8.2|^8.3|^8.4","spatie/laravel-package-tools":"^1.16","filament/filament":"^4.0|^5.0","illuminate/contracts":"^11.0|^12.0"},"require-dev":{"laravel/pint":"^1.0","orchestra/testbench":"^9.0","pestphp/pest":"^3.0","pestphp/pest-plugin-laravel":"^3.0"},"autoload":{"psr-4":{"{{NAMESPACE_ESCAPED}}\\":"src/"}},"autoload-dev":{"psr-4":{"{{NAMESPACE_ESCAPED}}\\Tests\\":"tests/"}},"scripts":{"test":"vendor/bin/pest","format":"vendor/bin/pint"},"config":{"sort-packages":true,"allow-plugins":{"pestphp/pest-plugin":true}},"extra":{"laravel":{"providers":["{{NAMESPACE_ESCAPED}}\\{{CLASS_NAME}}ServiceProvider"]}},"minimum-stability":"stable","prefer-stable":true}
+{
+    "name": "{{COMPOSER_NAME}}",
+    "description": "{{DESCRIPTION}}",
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "laravel"
+    ],
+    "homepage": "https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}",
+    "type": "library",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}/issues",
+        "source": "https://github.com/{{VENDOR_SLUG}}/{{PACKAGE_SLUG}}"
+    },
+    "authors": [
+        {
+            "name": "{{AUTHOR_NAME}}",
+            "email": "{{AUTHOR_EMAIL}}"
+        }
+    ],
+    "require": {
+        "php": "^8.2|^8.3|^8.4",
+        "spatie/laravel-package-tools": "^1.16",
+        "filament/filament": "{{FILAMENT_CONSTRAINT}}",
+        "illuminate/contracts": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "{{NAMESPACE_ESCAPED}}\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "{{NAMESPACE_ESCAPED}}\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "{{NAMESPACE_ESCAPED}}\\{{CLASS_NAME}}ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

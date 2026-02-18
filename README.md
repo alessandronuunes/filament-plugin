@@ -1,6 +1,14 @@
-# Filament Plugin (Scaffolder)
+# Filament Plugin Scaffolder
 
-Scaffold Filament v4 plugins with one Artisan command. Generates the full structure (ServiceProvider, Plugin class, config, views, translations, install command, etc.) in `packages/` or a path of your choice.
+Scaffold Filament v3/v4/v5 plugins with Artisan commands. Generates the full structure: ServiceProvider, Plugin class, config, views, translations, install command, and more in `packages/` or a custom path.
+
+## Features
+
+| Command | Description |
+|---------|-------------|
+| `make:filament-plugin` | Create a new Filament plugin from scratch |
+| `filament-plugin:register` | Register an existing plugin in the project `composer.json` |
+| `filament-plugin:page` | Create a Filament page inside an existing plugin |
 
 ## Requirements
 
@@ -9,13 +17,11 @@ Scaffold Filament v4 plugins with one Artisan command. Generates the full struct
 
 ## Installation
 
-Install the package via Composer:
-
 ```bash
 composer require alessandronuunes/filament-plugin
 ```
 
-If the package is in a local path (e.g. monorepo), add to your application's `composer.json`:
+For local package (monorepo), add to the application `composer.json`:
 
 ```json
 {
@@ -38,36 +44,211 @@ Then run:
 composer update alessandronuunes/filament-plugin
 ```
 
-## Usage
+## Configuration
 
-From your Laravel project root:
+Publish the config file:
 
 ```bash
-php artisan make:filament-plugin NomeDoPlugin
+php artisan vendor:publish --tag=filament-plugin-config
 ```
 
-The command will prompt for:
+Edit `config/filament-plugin.php`:
 
-- Vendor namespace (PascalCase)
-- Package slug (kebab-case)
-- Description, author name/email
-- Plugin type (panel / standalone)
-- Options: config, views, translations, migrations, install command
+| Option | Description | Default |
+|--------|-------------|---------|
+| `packages_path` | Base directory for local plugins | `packages` |
+| `default_vendor` | Vendor namespace for new plugins | `AlessandroNuunes` |
+| `default_author_name` | Author name for `composer.json` | `AlessandroNuunes` |
+| `default_author_email` | Author email for `composer.json` | — |
 
-The plugin is generated in `packages/{slug}/` (or `--path=custom/path`). Next steps are printed in the terminal.
+The `packages_path` is used by `filament-plugin:register` and `filament-plugin:page` to locate plugins (e.g. `FilamentTest` → `packages/filament-test`).
+
+---
+
+## 1. Create a New Plugin
+
+```bash
+php artisan make:filament-plugin FilamentTest
+```
+
+The command asks interactively:
+
+- **Vendor namespace** (PascalCase)
+- **Package slug** (kebab-case)
+- **Description** and **author** (name/email)
+- **Plugin type:** `panel` (pages, resources, widgets, tenancy) or `standalone` (reusable components)
+- **Filament version:** 3, 4, 5, or 4|5 (compatible with both)
+- **Include:** config, views, translations, migrations, install command
+
+The plugin is created in `packages/{slug}/` (or `--path=custom/path`).
 
 ### Options
 
-- `--path=packages` – Base directory for the new plugin (default: `packages`)
-- `--force` – Overwrite existing directory
-- `--no-interaction` – Use defaults for all prompts
+| Option | Description |
+|--------|-------------|
+| `--path=packages` | Base directory for the plugin (default: `packages`) |
+| `--force` | Overwrite existing directory |
+| `--register` | Add plugin to `composer.json` and run `composer update` |
+| `--no-register` | Skip adding to `composer.json` |
 
-## Sharing with others
+### Non-interactive Example
 
-1. Publish this package to GitHub (or GitLab).
+```bash
+php artisan make:filament-plugin FilamentTest --path=packages --force --register
+```
+
+With `--no-interaction`, the Filament version defaults to 4 or 5.
+
+---
+
+## 2. Register Existing Plugin
+
+If the plugin already exists in `packages/` but is not in the project `composer.json`:
+
+```bash
+php artisan filament-plugin:register FilamentTest
+```
+
+The command:
+
+1. Finds the plugin in `packages/filament-test` (or configured `packages_path`)
+2. Adds the path repository and `require` to `composer.json`
+3. Runs `composer update {package}`
+
+**Argument:** Plugin name in PascalCase (e.g. `FilamentTest`, `FilamentMember`).
+
+If the plugin is not found, check `packages_path` in `config/filament-plugin.php`.
+
+---
+
+## 3. Create Page Inside a Plugin
+
+After creating or cloning a plugin, add Filament pages with:
+
+```bash
+php artisan filament-plugin:page MyPage --plugin=FilamentTest
+```
+
+Creates the class at `src/Pages/MyPage.php` and the view at `resources/views/filament/pages/my-page.blade.php`.
+
+### Arguments and Options
+
+| Argument/Option | Required | Description |
+|-----------------|----------|-------------|
+| `name` | Yes | Page name in PascalCase (e.g. `ManageSettings`) |
+| `--plugin=` | Yes | Plugin name in PascalCase (e.g. `FilamentTest`) |
+| `--filament=` | When `--no-interaction` | Version: `3`, `4`, `5`, or `4\|5` |
+| `--force` | No | Overwrite existing class and view |
+| `--register` | No | Add page to `->pages([...])` in the Plugin class |
+| `--panel=` | No | Panel name (comment only in the class) |
+
+### Examples
+
+```bash
+# Interactive (prompts for Filament version)
+php artisan filament-plugin:page ManageSettings --plugin=FilamentTest
+
+# Non-interactive
+php artisan filament-plugin:page ManageSettings --plugin=FilamentTest --filament=5 --no-interaction
+
+# Register in Plugin and overwrite
+php artisan filament-plugin:page Settings --plugin=FilamentTest --register --force
+
+# With specific panel
+php artisan filament-plugin:page Billing --plugin=FilamentTest --panel=admin
+```
+
+### Auto-register Page
+
+With `--register`, the command adds the page to `->pages([...])` in the plugin `*Plugin.php`. If the plugin uses `->discoverPages()`, the page is discovered automatically and no manual change is needed.
+
+---
+
+## Recommended Workflow
+
+1. **Create the plugin:**
+   ```bash
+   php artisan make:filament-plugin FilamentTest
+   ```
+
+2. **Register in the project** (if not already):
+   ```bash
+   php artisan filament-plugin:register FilamentTest
+   ```
+
+3. **Add pages:**
+   ```bash
+   php artisan filament-plugin:page MyPage --plugin=FilamentTest
+   ```
+
+4. **Register the plugin in the Filament panel:**
+   ```php
+   // App\Providers\Filament\AdminPanelProvider (or similar)
+   ->plugins([
+       \YourVendor\FilamentTest\FilamentTestPlugin::make(),
+   ])
+   ```
+
+---
+
+## Structure Generated by `make:filament-plugin`
+
+```
+packages/{slug}/
+├── src/
+│   ├── {Name}Plugin.php          # Plugin class (panel type only)
+│   ├── {Name}ServiceProvider.php
+│   ├── Pages/                    # Pages created with filament-plugin:page
+│   ├── Support/
+│   │   └── ConfigHelper.php
+│   └── Console/Commands/         # If install command included
+│       └── InstallCommand.php
+├── config/
+│   └── {slug}.php
+├── resources/
+│   ├── views/filament/pages/
+│   ├── views/livewire/
+│   └── lang/en/ and pt_BR/       # If translations included
+├── database/migrations/          # If migrations included
+├── composer.json
+├── README.md
+├── pint.json
+└── ...
+```
+
+---
+
+## Troubleshooting
+
+- **Plugin not found:** Ensure `packages_path` in `config/filament-plugin.php` points to the directory containing your plugins.
+- **Invalid namespace:** Vendor and namespace must be valid PHP identifiers (no leading numbers). Use PascalCase (e.g. `AlessandroNuunes`).
+- **Interactive prompts:** Do not pipe input into the command; respond to prompts directly to avoid invalid data.
+
+---
+
+## Publishing
+
+1. Publish the package to GitHub (or GitLab).
 2. Others can install via Composer:
    - **Packagist:** `composer require alessandronuunes/filament-plugin`
-   - **Git repo:** add `repositories` with `"type": "vcs", "url": "https://github.com/your-user/filament-plugin"` and `composer require alessandronuunes/filament-plugin:dev-main`
+   - **Git repo:** add to `repositories`: `"type": "vcs", "url": "https://github.com/your-username/filament-plugin"` then `composer require alessandronuunes/filament-plugin:dev-main`
+
+---
+
+## Contributing
+
+This package is in its **early stages** and we would love your help to improve it. Ideas, bug reports, pull requests, and feedback are all welcome.
+
+Ways you can contribute:
+
+- Open issues for bugs or feature requests
+- Submit pull requests for improvements
+- Share your experience or suggestions
+- Help improve the documentation
+
+Together we can make this scaffolder more useful for the Filament community. Thank you!
+
+---
 
 ## License
 
