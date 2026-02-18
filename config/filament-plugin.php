@@ -30,4 +30,19 @@ return [
     */
     'default_author_name' => 'AlessandroNuunes',
     'default_author_email' => 'alessandronuunes@gmail.com',
-];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Submit Wizard Author Defaults
+    |--------------------------------------------------------------------------
+    | Pre-fill for filament-plugin:submit (filamentphp.com). Leave null to
+    | derive from default_author_name / default_vendor.
+    */
+    'author_full_name' => 'alessandro nunes de oliveira',
+    'author_slug' => 'alessandronuunes',
+    'author_github_url' => 'https://github.com/alessandronuunes',
+    'author_twitter' => 'https://x.com/alessandronuunes',
+    'author_mastodon' => null,
+    'author_sponsor_url' => 'https://github.com/sponsors/alessandronuunes',
+
+    ];

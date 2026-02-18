@@ -22,6 +22,7 @@ class FilamentPluginServiceProvider extends ServiceProvider
                 Commands\MakeFilamentPluginCommand::class,
                 Commands\FilamentPluginRegisterCommand::class,
                 Commands\FilamentPluginPageCommand::class,
+                Commands\SubmitPluginWizardCommand::class,
             ]);
 
             $this->publishes([
